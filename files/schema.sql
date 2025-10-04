@@ -7,15 +7,15 @@ CREATE TABLE employees (
     name VARCHAR(100),
     department VARCHAR(50),
     position VARCHAR(50),
-    hire_date DATE,
+    hire_date DATE
 );
 
 
 
-CREATE TABLE external_employess (
+CREATE TABLE external_employees (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100),
-    company_name VARCHAR(100),
+    company_name VARCHAR(100)
 );
 
 
