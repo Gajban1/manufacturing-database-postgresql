@@ -5,7 +5,7 @@
 * Baza Ewidencyjna
 * Baza Pracownicza
 * Baza Godzinowa (Wypłata, Srednia Godzin)
-* Baza Pracowników ze firm zewnetrzncyh  
+* Baza Pracowników ze firm zewnetrznych  
 * Baza Wynagrodzenia
 * Baza Punktow 2x (W1-12) pocz 100pkt
 * Baza zlecen 
