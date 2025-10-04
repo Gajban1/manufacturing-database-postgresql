@@ -15,7 +15,7 @@
   
 ---
 
-### Technologia użyta do stworzenia bazy Postgresql :) 
+### Technologia użyta do stworzenia bazy Postgresql 
 
 *Firma zajmujaca sie produkcja międzynarodowa naczep do ciągników siodłowych dzialajaca na zlecenie firm zewnetrznych takich jak Amazon, Lawrence Francis .
 Mająca główna siedzibe firmy w Wieluniu i Bełchatowie jak i w całej Europie, zatrudnia ona ponad 3000 pracowników aktywnie w całej Europie.*
