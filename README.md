@@ -29,5 +29,12 @@ Mająca główna siedzibe firmy w Wieluniu i Bełchatowie jak i w całej Europie
 
 ### Lista zabezpieczeń bazy danych:
 
-* 
+---
+
+
+### Wstepny schemat, wygenerowalem go za pomoca pgAdmin 4
+
+<img width="2856" height="2408" alt="Schemat" src="https://github.com/user-attachments/assets/ebd9ee51-4131-41f1-bbc0-a1a2e2f65549" />
+
+
 
