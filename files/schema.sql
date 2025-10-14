@@ -2,121 +2,54 @@ CREATE DATABASE company;
 
 \c company
 
-CREATE TABLE employees (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100),
-    department VARCHAR(50),
-    position VARCHAR(50),
-    hire_date DATE
+CREATE TABLE pracownicy (
+    pracownik_id INTEGER PRIMARY KEY,
+    imie VARCHAR(50) NOT NULL,
+    nazwisko VARCHAR(50) NOT NULL,
+    pesel VARCHAR(11) UNIQUE NOT NULL,
+    data_urodzenia DATE NOT NULL,
+    adres VARCHAR(255),
+    telefon_kontaktowy VARCHAR(15),
+    email_sluzbowy VARCHAR(100) UNIQUE,
+    stanowisko VARCHAR(100) NOT NULL,
+    jednostka_id INTEGER NOT NULL,
+    data_zatrudnienia DATE NOT NULL,
+    data_zwolnienia DATE,
+    typ_umowy VARCHAR(50) NOT NULL,
+    wymiar_etatu NUMERIC(3,2) NOT NULL,
+    numer_konta_bankowego VARCHAR(26) UNIQUE,
+    przelozony_id INTEGER,
+    aktywny BOOLEAN DEFAULT TRUE NOT NULL
 );
 
 
-
-CREATE TABLE external_employees (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100),
-    company_name VARCHAR(100)
+CREATE TABLE jednostki_organizacyjne (
+    jednostka_id INTEGER PRIMARY KEY,
+    nazwa_jednostki VARCHAR(100) UNIQUE NOT NULL,
+    typ_jednostki VARCHAR(20) NOT NULL,
+    adres VARCHAR(255),
+    telefon VARCHAR(15),
+    jednostka_nadrzedna_id INTEGER
 );
 
-
-
-CREATE TABLE employee_register (
-    id SERIAL PRIMARY KEY,
-    employee_id INT REFERENCES employees(id),
-    register_date DATE DEFAULT CURRENT_DATE,
-    status VARCHAR(30)
-
+CREATE TABLE rejestr_czasu_pracy (
+    rejestr_id INTEGER PRIMARY KEY,
+    pracownik_id INTEGER NOT NULL,
+    data_pracy DATE NOT NULL,
+    godziny_przepracowane NUMERIC(4,2) NOT NULL,
+    godziny_nadliczbowe NUMERIC(4,2) DEFAULT 0.00 NOT NULL
 );
 
-
-
-CREATE TABLE work_hours (
-    id SERIAL PRIMARY KEY,
-    employee_id INT REFERENCES employees(id),
-    work_date DATE,
-    hours_worked NUMERIC(4,2),
-    hourly_rate NUMERIC(6,2)
+CREATE TABLE wynagrodzenia (
+    wynagrodzenie_id INTEGER PRIMARY KEY,
+    pracownik_id INTEGER NOT NULL,
+    okres_rozliczeniowy DATE NOT NULL,
+    data_wyplaty DATE NOT NULL,
+    placa_podstawowa NUMERIC(10,2) NOT NULL,
+    premia_za_wyniki NUMERIC(10,2) DEFAULT 0.00 NOT NULL,
+    dodatek_za_nadgodziny NUMERIC(10,2) DEFAULT 0.00 NOT NULL,
+    kary_za_wykroczenia NUMERIC(10,2) DEFAULT 0.00 NOT NULL,
+    calkowite_wynagrodzenie_brutto NUMERIC(10,2) NOT NULL,
+    calkowite_wynagrodzenie_netto NUMERIC(10,2) NOT NULL,
+    komentarz VARCHAR(255)
 );
-
-
-CREATE TABLE salary (
-    id SERIAL PRIMARY KEY,
-    employee_id INT REFERENCES employees(id),
-    payment_date DATE,
-    total_pay NUMERIC(10,2)
-);
-
-CREATE TABLE bonus_points (
-    id SERIAL PRIMARY KEY,
-    employee_id INT REFERENCES employees(id),
-    bonus_type VARCHAR(50),
-    bonus_value NUMERIC(8,2),
-    date_awarded DATE DEFAULT CURRENT_DATE,
-    description TEXT
-);
-
-
-CREATE TABLE orders (
-    id SERIAL PRIMARY KEY,
-    employee_id INT REFERENCES employees(id),
-    task_description TEXT,
-    deadline DATE,
-    status VARCHAR(20)
-);
-
-
-CREATE TABLE bhp_records (
-    id SERIAL PRIMARY KEY,
-    employee_id INT REFERENCES employees(id),
-    training_date DATE,
-    valid_until DATE,
-    comments TEXT
-);
-
-
-
-CREATE TABLE misconduct (
-    id SERIAL PRIMARY KEY,
-    employee_id INT REFERENCES employees(id),
-    incident_date DATE,
-    description TEXT,
-    action_taken VARCHAR(100)
-);
-
-
---NIE WIEM CZY CHCEMY ZROBIC OSOBY PLIK Z FUNKCJAMI CZY NIE ALE NARAZIE DALEM TO W OBU PLIKACH
-
-CREATE OR REPLACE FUNCTION show_salary(emp_id INT)
-RETURNS NUMERIC AS $$
-DECLARE
-    total_pay NUMERIC := 0;
-    bonus_total NUMERIC := 0;
-    emp_status VARCHAR(30);
-BEGIN
-    SELECT status 
-    INTO emp_status
-    FROM employee_register
-    WHERE employee_id = emp_id
-    ORDER BY register_date DESC
-    LIMIT 1;
-
-    IF emp_status IS NULL OR emp_status <> 'aktywny' THEN
-        RAISE NOTICE 'Pracownik % nie jest aktywny lub nie istnieje.', emp_id;
-        RETURN 0;
-    END IF;
-
-
-    SELECT COALESCE(SUM(hours_worked * hourly_rate), 0)
-    INTO total_pay
-    FROM work_hours
-    WHERE employee_id = emp_id;
-
-
-    SELECT COALESCE(SUM(bonus_value), 0)
-    INTO bonus_total
-    FROM bonus_points
-    WHERE employee_id = emp_id;
-
-    RETURN total_pay + bonus_total;
-END;
-$$ LANGUAGE plpgsql;
