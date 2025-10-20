@@ -66,7 +66,7 @@ W celu ochrony integralności i poufności danych wdrożone zostaną następują
 
 ### Wstepny schemat, wygenerowalem go za pomoca pgAdmin 4
 
-<img width="2856" height="2408" alt="Schemat" src="https://github.com/user-attachments/assets/ebd9ee51-4131-41f1-bbc0-a1a2e2f65549" />
+<img width="3200" height="3368" alt="Baza_danych_schemat" src="https://github.com/user-attachments/assets/c8d71fde-9227-4761-bc19-cd61bd7b9819" />
 
 
 
