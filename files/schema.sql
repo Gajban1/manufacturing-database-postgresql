@@ -9,7 +9,7 @@ CREATE TABLE pracownicy (
     pesel VARCHAR(11) UNIQUE NOT NULL,
     data_urodzenia DATE NOT NULL,
     adres VARCHAR(255),
-    telefon_kontaktowy VARCHAR(15),
+    telefon_kontaktowy VARCHAR(15) UNIQUE,
     email_sluzbowy VARCHAR(100) UNIQUE,
     stanowisko VARCHAR(100) NOT NULL,
     jednostka_id INTEGER NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE jednostki_organizacyjne (
     nazwa_jednostki VARCHAR(100) UNIQUE NOT NULL,
     typ_jednostki VARCHAR(20) NOT NULL,
     adres VARCHAR(255),
-    telefon VARCHAR(15),
+    telefon VARCHAR(15) UNIQUE,
     jednostka_nadrzedna_id INTEGER
 );
 
