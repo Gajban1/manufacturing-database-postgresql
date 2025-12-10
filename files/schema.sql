@@ -1,4 +1,5 @@
-CREATE DATABASE company;
+DROP DATABASE IF EXISTS company; -- usuwa bazę danych jeśli istnieje
+CREATE DATABASE company; -- tworzy bazę danych
 
 \c company
 
@@ -19,7 +20,8 @@ CREATE TABLE pracownicy (
     wymiar_etatu NUMERIC(3,2) NOT NULL,
     numer_konta_bankowego VARCHAR(26) UNIQUE,
     przelozony_id INTEGER,
-    aktywny BOOLEAN DEFAULT TRUE NOT NULL
+    aktywny BOOLEAN DEFAULT TRUE NOT NULL,
+    stawka_godzinowa NUMERIC(10,2) NOT NULL
 );
 
 
@@ -153,3 +155,7 @@ ALTER TABLE zlecenia_produkcyjne
 ADD CONSTRAINT fk_jednostka_id_rejestr_wykroczen
 FOREIGN KEY (jednostka_id) 
 REFERENCES jednostki_organizacyjne(jednostka_id);
+
+ALTER TABLE rejestr_czasu_pracy 
+ADD CONSTRAINT unikalny_czas_pracy_dziennie 
+UNIQUE (pracownik_id, data_pracy);
