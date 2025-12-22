@@ -33,7 +33,7 @@
     *   [5.4. Rola Księgowości](#54-rola-księgowości)
     *   [5.5. Rola Audytora](#55-rola-audytora)
 6.  [Biblioteka Zapytań (SQL Cookbook)](#6-biblioteka-zapytań-sql-cookbook)
-7.  [Słownik Pojęć](#7-słownik-pojęć)
+7.  [Słownik Pojęć (Dictionary)](#7-słownik-pojęć)
 
 ---
 
@@ -816,7 +816,7 @@ SELECT pid, mode, granted FROM pg_locks;
 
 ---
 
-## **7. Słownik Pojęć**
+## **7. Słownik Pojęć (Dictionary)**
 
 *   **DDL (Data Definition Language):** Język definicji danych, służy do tworzenia i modyfikowania struktury tabel (np. `CREATE TABLE, ALTER TABLE`).
 *   **DML (Data Manipulation Language):** Język manipulacji danymi (np. `INSERT, UPDATE, DELETE`).
