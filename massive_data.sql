@@ -2,6 +2,10 @@
 BEGIN;
 
 -- Generowanie Jednostek
+INSERT INTO jednostki_organizacyjne (jednostka_id, nazwa_jednostki, typ_jednostki, adres) VALUES (1, 'Zarząd', 'Zarząd', 'ul. Główna 1, Warszawa') ON CONFLICT DO NOTHING;
+INSERT INTO jednostki_organizacyjne (jednostka_id, nazwa_jednostki, typ_jednostki, adres) VALUES (2, 'Księgowość', 'Dział', 'ul. Finansowa 2, Warszawa') ON CONFLICT DO NOTHING;
+INSERT INTO jednostki_organizacyjne (jednostka_id, nazwa_jednostki, typ_jednostki, adres) VALUES (3, 'Logistyka', 'Dział', 'ul. Magazynowa 3, Warszawa') ON CONFLICT DO NOTHING;
+
 INSERT INTO jednostki_organizacyjne (jednostka_id, nazwa_jednostki, typ_jednostki, adres) VALUES (4, 'Dział IT', 'Dział', 'ul. Rajska 410, 49-550 Bielawa') ON CONFLICT DO NOTHING;
 INSERT INTO jednostki_organizacyjne (jednostka_id, nazwa_jednostki, typ_jednostki, adres) VALUES (5, 'Dział HR', 'Dział', 'ul. Wodna 58, 43-719 Tomaszów Mazowiecki') ON CONFLICT DO NOTHING;
 INSERT INTO jednostki_organizacyjne (jednostka_id, nazwa_jednostki, typ_jednostki, adres) VALUES (6, 'Kontrola Jakości', 'Dział', 'aleja Ciasna 96, 09-007 Racibórz') ON CONFLICT DO NOTHING;

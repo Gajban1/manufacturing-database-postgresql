@@ -211,3 +211,149 @@ BEGIN
     ORDER BY z.data_faktycznej_realizacji ASC;
 END;
 $$ LANGUAGE plpgsql;
+
+----------------------------------------------------
+-- 5. NOWA FUNKCJA: Estymacja czasu produkcji
+----------------------------------------------------
+CREATE OR REPLACE FUNCTION przewidz_termin_realizacji(p_ilosc INT, p_typ_produktu VARCHAR)
+RETURNS DATE AS $$
+DECLARE
+    v_dni_produkcji INT;
+BEGIN
+    -- Logika: skomplikowane = 10/dzień, zwykłe = 50/dzień
+    IF p_typ_produktu ILIKE '%skomplikowany%' THEN
+        v_dni_produkcji := CEIL(p_ilosc / 10.0);
+    ELSE
+        v_dni_produkcji := CEIL(p_ilosc / 50.0);
+    END IF;
+    
+    -- Minimum 1 dzień
+    IF v_dni_produkcji < 1 THEN v_dni_produkcji := 1; END IF;
+    
+    RETURN CURRENT_DATE + (v_dni_produkcji || ' days')::INTERVAL;
+END;
+$$ LANGUAGE plpgsql;
+
+----------------------------------------------------
+-- 6. CONSTRAINTS: Zabezpieczenia danych
+----------------------------------------------------
+
+-- Zabezpieczenie przed ujemną wypłatą
+ALTER TABLE wynagrodzenia DROP CONSTRAINT IF EXISTS check_wynagrodzenie_non_negative;
+ALTER TABLE wynagrodzenia ADD CONSTRAINT check_wynagrodzenie_non_negative CHECK (calkowite_wynagrodzenie_brutto >= 0);
+
+-- Zabezpieczenie przed ujemną ceną i zerową ilością w zleceniach
+ALTER TABLE zlecenia_produkcyjne DROP CONSTRAINT IF EXISTS check_cena_non_negative;
+ALTER TABLE zlecenia_produkcyjne ADD CONSTRAINT check_cena_non_negative CHECK (cena_jednostkowa >= 0);
+
+ALTER TABLE zlecenia_produkcyjne DROP CONSTRAINT IF EXISTS check_ilosc_positive;
+ALTER TABLE zlecenia_produkcyjne ADD CONSTRAINT check_ilosc_positive CHECK (ilosc > 0);
+
+----------------------------------------------------
+-- 7. PROCEDURA: Archiwizacja Pracownika (Complex Logic)
+----------------------------------------------------
+CREATE OR REPLACE PROCEDURE archiwizuj_pracownika(p_pracownik_id INT, p_powod VARCHAR)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_liczba_otwartych_zadan INT;
+BEGIN
+    -- Logika biznesowa: Sprawdzanie powiązań (mock)
+    -- W realnym systemie sprawdzalibyśmy czy ma nieoddany sprzęt itp.
+    
+    UPDATE pracownicy 
+    SET aktywny = FALSE, 
+        data_zwolnienia = CURRENT_DATE,
+        adres = CONCAT(adres, ' [Zarchiwizowano: ', p_powod, ']')
+    WHERE pracownik_id = p_pracownik_id;
+    
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Pracownik o ID % nie istnieje', p_pracownik_id;
+    END IF;
+    
+    RAISE NOTICE 'Pracownik % został zarchiwizowany.', p_pracownik_id;
+END;
+$$;
+
+----------------------------------------------------
+-- 8. FUNKCJA: Analityka ROI Pracownika
+----------------------------------------------------
+CREATE OR REPLACE FUNCTION oblicz_efektywnosc_pracownika(p_pracownik_id INT, p_miesiac INT)
+RETURNS NUMERIC AS $$
+DECLARE
+    v_koszt NUMERIC;
+    v_przychod NUMERIC;
+BEGIN
+    -- 1. Koszt (Wypłata z tego miesiąca)
+    SELECT calkowite_wynagrodzenie_brutto INTO v_koszt
+    FROM wynagrodzenia
+    WHERE pracownik_id = p_pracownik_id 
+      AND EXTRACT(MONTH FROM okres_rozliczeniowy) = p_miesiac
+      AND EXTRACT(YEAR FROM okres_rozliczeniowy) = EXTRACT(YEAR FROM CURRENT_DATE);
+      
+    v_koszt := COALESCE(v_koszt, 1); -- unikanie dzielenia przez 0
+    
+    -- 2. Przychód (Suma zleceń zrobionych przez jednostkę tego pracownika / ilosć osób)
+    SELECT SUM(ilosc * cena_jednostkowa) 
+    INTO v_przychod
+    FROM zlecenia_produkcyjne zp
+    JOIN pracownicy p ON zp.jednostka_id = p.jednostka_id
+    WHERE p.pracownik_id = p_pracownik_id
+      AND zp.czy_zakonczona = TRUE
+      AND EXTRACT(MONTH FROM zp.data_faktycznej_realizacji) = p_miesiac;
+      
+    v_przychod := COALESCE(v_przychod, 0);
+    
+    -- Algorytm: (Przychód / 5 osób w zespole) / Koszt Pracownika * 100%
+    RETURN ROUND((v_przychod / 5.0) / v_koszt * 100, 2); 
+END;
+$$ LANGUAGE plpgsql;
+
+----------------------------------------------------
+-- 9. FUNKCJA: Prognozowanie Przychodów (Forecasting)
+----------------------------------------------------
+CREATE OR REPLACE FUNCTION prognoza_przychodow(p_miesiace_w_przod INT)
+RETURNS TABLE (miesiac DATE, estymowany_przychod NUMERIC) AS $$
+DECLARE
+    v_srednia_miesieczna NUMERIC;
+    i INT;
+BEGIN
+    -- Analiza historyczna (ostatni kwartał)
+    SELECT AVG(suma) INTO v_srednia_miesieczna FROM (
+        SELECT SUM(ilosc * cena_jednostkowa) as suma
+        FROM zlecenia_produkcyjne
+        WHERE czy_zakonczona = TRUE
+          AND data_faktycznej_realizacji >= CURRENT_DATE - INTERVAL '3 months'
+        GROUP BY DATE_TRUNC('month', data_faktycznej_realizacji)
+    ) sub;
+    
+    v_srednia_miesieczna := COALESCE(v_srednia_miesieczna, 0);
+
+    -- Projekcja przyszłości
+    FOR i IN 1..p_miesiace_w_przod LOOP
+        miesiac := DATE_TRUNC('month', CURRENT_DATE + (i || ' month')::INTERVAL);
+        -- Założenie: Wzrost organiczny 2% miesięcznie
+        estymowany_przychod := v_srednia_miesieczna * POWER(1.02, i);
+        RETURN NEXT;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+----------------------------------------------------
+-- 10. TRIGGER: Blokada Zmian Historycznych (Guard)
+----------------------------------------------------
+CREATE OR REPLACE FUNCTION blokuj_edycje_historii()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Nie pozwól edytować wypłat starszych niż 30 dni
+    IF OLD.data_wyplaty < CURRENT_DATE - INTERVAL '30 days' THEN
+        RAISE EXCEPTION 'Naruszenie zasad bezpieczeństwa: Próba edycji archiwalnych danych płacowych!';
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_security_payroll ON wynagrodzenia;
+
+CREATE TRIGGER trg_security_payroll
+BEFORE UPDATE OR DELETE ON wynagrodzenia
+FOR EACH ROW EXECUTE FUNCTION blokuj_edycje_historii();
