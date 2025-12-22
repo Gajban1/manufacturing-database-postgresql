@@ -1,0 +1,2 @@
+1. W pliku Database.php w /classes musisz zmienic dane na swoje oraz zaimportowac dane w takiej formie jak sa teraz.
+2. Komenda: php -S 127.0.0.1:8888 (dowolny loopback oraz port jak cos, ja dalem takie)
