@@ -2,7 +2,7 @@
 
 <div class="hero">
     <h1>Panel Zarządzania</h1>
-    <p>Company - PostgreSQL</p>
+    <p>Wielton S.A. - PostgreSQL</p>
 </div>
 
 <div class="card-grid">
