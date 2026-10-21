@@ -19,7 +19,8 @@ with open(output_file, "w", encoding="utf-8") as f:
     jednostki = ['Dział IT', 'Dział HR', 'Kontrola Jakości', 'Dział Handlowy', 'Utrzymanie Ruchu']
     f.write("-- Generowanie Jednostek\n")
     for i, nazwa in enumerate(jednostki, start=4): # Start od 4, bo 1-3 już są
-        sql = f"INSERT INTO jednostki_organizacyjne (jednostka_id, nazwa_jednostki, typ_jednostki, adres) VALUES ({i}, '{nazwa}', 'Dział', '{fake.address().replace('\n', ', ')}') ON CONFLICT DO NOTHING;\n"
+        adres_jednostki = fake.address().replace("\n", ", ").replace("'", "''")
+        sql = f"INSERT INTO jednostki_organizacyjne (jednostka_id, nazwa_jednostki, typ_jednostki, adres) VALUES ({i}, '{nazwa}', 'Dział', '{adres_jednostki}') ON CONFLICT DO NOTHING;\n"
         f.write(sql)
     f.write("\n")
 

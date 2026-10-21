@@ -1,5 +1,5 @@
 
--- nie wiem czy tak to wlasnie mialo dzialac, ale jak mozesz to dodaj jakies nowe funkcje bo nie wiem co mam dalej robic
+-- Academic database procedures and validation rules.
 
 CREATE OR REPLACE FUNCTION show_salary(emp_id INT)
 RETURNS NUMERIC AS $$
@@ -348,7 +348,10 @@ BEGIN
     IF OLD.data_wyplaty < CURRENT_DATE - INTERVAL '30 days' THEN
         RAISE EXCEPTION 'Naruszenie zasad bezpieczeństwa: Próba edycji archiwalnych danych płacowych!';
     END IF;
-    RETURN OLD;
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    END IF;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 

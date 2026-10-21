@@ -1,8 +1,3 @@
-DROP DATABASE IF EXISTS company; -- usuwa bazę danych jeśli istnieje
-CREATE DATABASE company; -- tworzy bazę danych
-
-\c company
-
 CREATE TABLE pracownicy (
     pracownik_id INTEGER PRIMARY KEY,
     imie VARCHAR(50) NOT NULL,

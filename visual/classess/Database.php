@@ -8,10 +8,14 @@ class Database {
 
     private $host = 'localhost';
     private $db_name = 'company';
-    private $username = 'pawellorenc';
+    private $username = '';
     private $password = '';
 
     private function __construct(){
+        $this->host = getenv('DB_HOST') ?: 'localhost';
+        $this->db_name = getenv('DB_NAME') ?: 'company_portfolio';
+        $this->username = getenv('DB_USER') ?: 'postgres';
+        $this->password = getenv('DB_PASSWORD') ?: '';
         try {
             $dsn = "pgsql:host=" . $this->host . ";dbname=" . $this->db_name;
 
